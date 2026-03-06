@@ -1,5 +1,9 @@
 # Python
 __pycache__/
+test_system.py
+quick_check.py
+*.db
+
 *.py[cod]
 *$py.class
 *.so
