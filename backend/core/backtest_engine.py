@@ -3,7 +3,6 @@ import numpy as np
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timedelta
 from core.strategy_engine import BaseStrategy, StrategyRegistry, SignalType
-from core.data_fetcher import get_data_fetcher
 
 
 class BacktestResult:

@@ -169,3 +169,107 @@ class MomentumBreakout(BaseStrategy):
             )
 
         return result
+
+
+@StrategyRegistry.register
+class SimpleBuyHoldStrategy(BaseStrategy):
+    name = "简单买入持有"
+    type = "test"
+    description = "第35天买入，一直持有用于测试"
+    default_params = {
+        'buy_day': 35
+    }
+
+    def generate_signals(self, df: pd.DataFrame, ts_code: str, name: Optional[str] = None) -> StrategyResult:
+        result = StrategyResult()
+        if df.empty or len(df) < 35:
+            return result
+
+        df = df.copy().sort_values('trade_date').reset_index(drop=True)
+        i = len(df) - 1
+        buy_day = self.get_param('buy_day', 35)
+
+        # 在第buy_day天买入（回测引擎从第30天开始运行）
+        if i == buy_day:
+            result.add_signal(
+                ts_code=ts_code,
+                name=name,
+                signal_type=SignalType.BUY,
+                price=float(df.loc[i, 'close']),
+                date=df.loc[i, 'trade_date'],
+                strategy_name=self.name
+            )
+
+        return result
+
+
+@StrategyRegistry.register
+class PeriodicTradeStrategy(BaseStrategy):
+    name = "定期买卖测试"
+    type = "test"
+    description = "第35天买入，第65天卖出"
+    default_params = {
+        'buy_day': 35,
+        'sell_day': 65
+    }
+
+    def generate_signals(self, df: pd.DataFrame, ts_code: str, name: Optional[str] = None) -> StrategyResult:
+        result = StrategyResult()
+        if df.empty or len(df) < 35:
+            return result
+
+        df = df.copy().sort_values('trade_date').reset_index(drop=True)
+        i = len(df) - 1
+        buy_day = self.get_param('buy_day', 35)
+        sell_day = self.get_param('sell_day', 65)
+
+        if i == buy_day:
+            result.add_signal(
+                ts_code=ts_code,
+                name=name,
+                signal_type=SignalType.BUY,
+                price=float(df.loc[i, 'close']),
+                date=df.loc[i, 'trade_date'],
+                strategy_name=self.name
+            )
+
+        if i == sell_day:
+            result.add_signal(
+                ts_code=ts_code,
+                name=name,
+                signal_type=SignalType.SELL,
+                price=float(df.loc[i, 'close']),
+                date=df.loc[i, 'trade_date'],
+                strategy_name=self.name
+            )
+
+        return result
+
+
+@StrategyRegistry.register
+class AlwaysBuyStrategy(BaseStrategy):
+    name = "第40天必买"
+    type = "test"
+    description = "只要有60天以上数据，第40天必定买入，最后一天卖出"
+    default_params = {}
+
+    def generate_signals(self, df: pd.DataFrame, ts_code: str, name: Optional[str] = None) -> StrategyResult:
+        result = StrategyResult()
+        if df.empty or len(df) < 60:
+            return result
+
+        df = df.copy().sort_values('trade_date').reset_index(drop=True)
+        i = len(df) - 1
+
+        # 第40天买入（回测引擎从第30天开始）
+        if i == 40:
+            result.add_signal(
+                ts_code=ts_code,
+                name=name,
+                signal_type=SignalType.BUY,
+                price=float(df.loc[i, 'close']),
+                date=df.loc[i, 'trade_date'],
+                strategy_name=self.name
+            )
+
+        return result
