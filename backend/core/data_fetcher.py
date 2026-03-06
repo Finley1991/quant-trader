@@ -1,5 +1,6 @@
 import tushare as ts
 import pandas as pd
+import numpy as np
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
@@ -87,9 +88,9 @@ class DataFetcher:
         delta = df['close'].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-        rs = gain / loss
+        rs = np.where(loss != 0, gain / loss, np.inf)
         rsi = 100 - (100 / (1 + rs))
-        return rsi
+        return pd.Series(rsi, index=df.index)
 
     def get_realtime_quotes(self, ts_codes: List[str]) -> pd.DataFrame:
         """Get real-time quotes for multiple stocks"""

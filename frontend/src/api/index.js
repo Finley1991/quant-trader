@@ -43,4 +43,5 @@ export const stocksApi = {
   getKline: (ts_code, freq = 'auto') => api.get(`/stocks/${ts_code}/kline?freq=${freq}`)
 }
 
+export { strategiesApi, backtestApi, signalsApi, notifyApi, watchlistApi, stocksApi }
 export default api

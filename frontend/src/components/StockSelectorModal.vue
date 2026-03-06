@@ -19,6 +19,7 @@
         @selection-change="handleSelectionChange"
         height="400"
         stripe
+        v-loading="loading"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="ts_code" label="代码" width="120" />
