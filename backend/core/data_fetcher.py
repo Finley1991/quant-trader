@@ -164,6 +164,62 @@ class DataFetcher:
             pass
         return None
 
+    def get_fund_list(self, fund_type: str = None) -> pd.DataFrame:
+        """获取基金列表
+        Args:
+            fund_type: 基金类型 (etf/lof/closed_end, None表示全部)
+        """
+        try:
+            fields = 'ts_code,name,fund_type,list_date,market'
+            df = self.pro.fund_basic(market='E', status='L', fields=fields)
+            if fund_type and not df.empty:
+                df = df[df['fund_type'].str.upper() == fund_type.upper()]
+            return df
+        except Exception:
+            return pd.DataFrame()
+
+    def get_fund_daily(self, ts_code: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
+        """获取基金日线数据"""
+        if end_date is None:
+            end_date = datetime.now().strftime('%Y%m%d')
+        if start_date is None:
+            start_date = (datetime.now() - timedelta(days=365)).strftime('%Y%m%d')
+
+        try:
+            df = self.pro.fund_daily(ts_code=ts_code, start_date=start_date, end_date=end_date)
+            if not df.empty:
+                df = df.sort_values('trade_date').reset_index(drop=True)
+            return df
+        except Exception:
+            return pd.DataFrame()
+
+    def get_fund_search(self, keyword: str) -> pd.DataFrame:
+        """搜索基金"""
+        df = self.get_fund_list()
+        if df.empty:
+            return df
+        keyword = keyword.upper()
+        mask = (df['ts_code'].str.contains(keyword, na=False) |
+                df['name'].str.contains(keyword, na=False))
+        return df[mask].head(50)
+
+    def get_daily_data_unified(self, ts_code: str, asset_type: str = 'stock',
+                               start_date: str = None, end_date: str = None) -> pd.DataFrame:
+        """统一获取日线数据（根据资产类型路由）"""
+        if asset_type == 'stock':
+            return self.get_daily_data(ts_code, start_date, end_date)
+        else:
+            return self.get_fund_daily(ts_code, start_date, end_date)
+
+    def get_kline_data_unified(self, ts_code: str, asset_type: str = 'stock',
+                               freq: str = 'auto') -> Dict[str, Any]:
+        """统一获取K线数据"""
+        # 基金暂时只支持日线
+        if asset_type != 'stock':
+            df = self.get_fund_daily(ts_code)
+            return {'freq': 'daily', 'data': df}
+        return self.get_kline_data(ts_code, freq)
+
 
 _data_fetcher: Optional[DataFetcher] = None
 

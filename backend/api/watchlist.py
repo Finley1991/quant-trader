@@ -12,15 +12,20 @@ router = APIRouter()
 class WatchlistAdd(BaseModel):
     ts_code: str
     name: str
+    asset_type: str = 'stock'
 
 @router.get("/")
-def get_watchlist(db: Session = Depends(get_db)):
-    items = db.query(Watchlist).order_by(Watchlist.sort_order, Watchlist.created_at).all()
+def get_watchlist(asset_type: str = None, db: Session = Depends(get_db)):
+    query = db.query(Watchlist)
+    if asset_type:
+        query = query.filter(Watchlist.asset_type == asset_type)
+    items = query.order_by(Watchlist.sort_order, Watchlist.created_at).all()
     return {"watchlist": [
         {
             "id": w.id,
             "ts_code": w.ts_code,
             "name": w.name,
+            "asset_type": w.asset_type,
             "sort_order": w.sort_order,
             "created_at": w.created_at
         }
@@ -31,18 +36,18 @@ def get_watchlist(db: Session = Depends(get_db)):
 def add_to_watchlist(data: WatchlistAdd, db: Session = Depends(get_db)):
     existing = db.query(Watchlist).filter(Watchlist.ts_code == data.ts_code).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Stock already in watchlist")
-    item = Watchlist(ts_code=data.ts_code, name=data.name)
+        raise HTTPException(status_code=400, detail="Asset already in watchlist")
+    item = Watchlist(ts_code=data.ts_code, name=data.name, asset_type=data.asset_type)
     db.add(item)
     db.commit()
     db.refresh(item)
-    return {"id": item.id, "ts_code": item.ts_code, "name": item.name}
+    return {"id": item.id, "ts_code": item.ts_code, "name": item.name, "asset_type": item.asset_type}
 
 @router.delete("/{ts_code}")
 def remove_from_watchlist(ts_code: str, db: Session = Depends(get_db)):
     item = db.query(Watchlist).filter(Watchlist.ts_code == ts_code).first()
     if not item:
-        raise HTTPException(status_code=404, detail="Stock not in watchlist")
+        raise HTTPException(status_code=404, detail="Asset not in watchlist")
     db.delete(item)
     db.commit()
     return {"success": True}
@@ -67,12 +72,20 @@ def get_watchlist_quotes(db: Session = Depends(get_db)):
     result = []
     for item in items:
         quote = quotes_dict.get(item.ts_code, {})
-        daily_df = fetcher.get_daily_data(item.ts_code)
-        daily_basic = fetcher.get_daily_basic_single(item.ts_code)
+        asset_type = getattr(item, 'asset_type', 'stock')
+
+        # 根据资产类型获取日线数据
+        if asset_type == 'stock':
+            daily_df = fetcher.get_daily_data(item.ts_code)
+            daily_basic = fetcher.get_daily_basic_single(item.ts_code)
+        else:
+            daily_df = fetcher.get_fund_daily(item.ts_code)
+            daily_basic = None  # 基金没有 daily_basic 数据
 
         quote_data = {
             "ts_code": item.ts_code,
             "name": item.name,
+            "asset_type": asset_type,
             "price": float(quote.get('PRICE', 0)) if quote.get('PRICE') else None,
             "change_pct": None,
             "high": None,

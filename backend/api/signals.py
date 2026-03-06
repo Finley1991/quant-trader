@@ -26,7 +26,7 @@ def get_signals(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
             "price": s.price,
             "signal_date": s.signal_date,
             "is_sent": s.is_sent,
-            "created_at": s.created_at
+            "created_at": s.created_at.isoformat() if s.created_at else None
         }
         for s in signals
     ]}
@@ -43,7 +43,8 @@ def get_today_signals(db: Session = Depends(get_db)):
             "strategy_name": s.strategy_name,
             "signal_type": s.signal_type,
             "price": s.price,
-            "signal_date": s.signal_date
+            "signal_date": s.signal_date,
+            "created_at": s.created_at.isoformat() if s.created_at else None
         }
         for s in signals
     ]}

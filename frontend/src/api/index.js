@@ -31,7 +31,7 @@ const notifyApi = {
 }
 
 const watchlistApi = {
-  getList: () => api.get('/watchlist'),
+  getList: (assetType) => api.get('/watchlist', { params: { asset_type: assetType } }),
   add: (data) => api.post('/watchlist', data),
   remove: (ts_code) => api.delete(`/watchlist/${ts_code}`),
   getQuotes: () => api.get('/watchlist/quotes')
@@ -43,5 +43,11 @@ const stocksApi = {
   getKline: (ts_code, freq = 'auto') => api.get(`/stocks/${ts_code}/kline?freq=${freq}`)
 }
 
-export { strategiesApi, backtestApi, signalsApi, notifyApi, watchlistApi, stocksApi }
+const fundsApi = {
+  search: (keyword) => api.get('/funds/search', { params: { keyword } }),
+  list: (fundType, limit) => api.get('/funds/list', { params: { fund_type: fundType, limit } }),
+  getKline: (tsCode) => api.get(`/funds/${tsCode}/kline`),
+}
+
+export { strategiesApi, backtestApi, signalsApi, notifyApi, watchlistApi, stocksApi, fundsApi }
 export default api

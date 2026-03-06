@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import engine, Base
-from api import strategies, backtest, signals, notify, watchlist, stocks
+from api import strategies, backtest, signals, notify, watchlist, stocks, funds
 
 Base.metadata.create_all(bind=engine)
 
@@ -11,7 +11,7 @@ app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,6 +23,7 @@ app.include_router(signals.router, prefix="/api/signals", tags=["signals"])
 app.include_router(notify.router, prefix="/api/notify", tags=["notify"])
 app.include_router(watchlist.router, prefix="/api/watchlist", tags=["watchlist"])
 app.include_router(stocks.router, prefix="/api/stocks", tags=["stocks"])
+app.include_router(funds.router, prefix="/api/funds", tags=["funds"])
 
 @app.get("/")
 def root():

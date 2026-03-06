@@ -22,15 +22,28 @@
         <el-tag v-else type="info" size="small" effect="plain">否</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="created_at" label="时间">
+    <el-table-column prop="created_at" label="时间" width="170">
       <template #default="{ row }">
-        {{ new Date(row.created_at).toLocaleString() }}
+        {{ formatDate(row.created_at) }}
       </template>
     </el-table-column>
   </el-table>
 </template>
 
 <script setup>
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  try {
+    const date = new Date(dateStr)
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleString('zh-CN')
+    }
+  } catch (e) {
+    // ignore
+  }
+  return String(dateStr)
+}
+
 defineProps({
   signals: {
     type: Array,
