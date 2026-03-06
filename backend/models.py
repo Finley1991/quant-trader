@@ -63,3 +63,12 @@ class Config(Base):
     key = Column(String, unique=True, index=True)
     value = Column(Text)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class Watchlist(Base):
+    __tablename__ = "watchlist"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ts_code = Column(String, unique=True, index=True)
+    name = Column(String)
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
