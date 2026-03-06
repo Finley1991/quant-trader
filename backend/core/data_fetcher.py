@@ -91,6 +91,78 @@ class DataFetcher:
         rsi = 100 - (100 / (1 + rs))
         return rsi
 
+    def get_realtime_quotes(self, ts_codes: List[str]) -> pd.DataFrame:
+        """Get real-time quotes for multiple stocks"""
+        if not ts_codes:
+            return pd.DataFrame()
+        ts_code_str = ','.join(ts_codes)
+        try:
+            df = ts.realtime_quote(ts_code=ts_code_str)
+            return df
+        except Exception:
+            return pd.DataFrame()
+
+    def get_stock_search(self, keyword: str) -> pd.DataFrame:
+        """Search stocks by name or code"""
+        df = self.get_stock_list()
+        if df.empty:
+            return df
+        keyword = keyword.upper()
+        mask = (df['ts_code'].str.contains(keyword, na=False) |
+                df['name'].str.contains(keyword, na=False))
+        return df[mask].head(50)
+
+    def get_kline_data(self, ts_code: str, freq: str = 'auto') -> Dict[str, Any]:
+        """Get k-line data with fallback strategy: 1min -> 5min -> daily"""
+        result = {'freq': 'daily', 'data': pd.DataFrame()}
+
+        # Try 1min first
+        if freq in ['auto', '1min']:
+            try:
+                end_date = datetime.now().strftime('%Y%m%d')
+                start_date = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d')
+                df = ts.pro_bar(ts_code=ts_code, asset='E', freq='1min',
+                                start_date=start_date, end_date=end_date)
+                if df is not None and not df.empty:
+                    result['freq'] = '1min'
+                    result['data'] = df.sort_values('trade_time').reset_index(drop=True)
+                    return result
+            except Exception:
+                pass
+
+        # Try 5min
+        if freq in ['auto', '5min']:
+            try:
+                end_date = datetime.now().strftime('%Y%m%d')
+                start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d')
+                df = ts.pro_bar(ts_code=ts_code, asset='E', freq='5min',
+                                start_date=start_date, end_date=end_date)
+                if df is not None and not df.empty:
+                    result['freq'] = '5min'
+                    result['data'] = df.sort_values('trade_time').reset_index(drop=True)
+                    return result
+            except Exception:
+                pass
+
+        # Fallback to daily
+        df = self.get_daily_data(ts_code)
+        if not df.empty:
+            result['freq'] = 'daily'
+            result['data'] = df
+        return result
+
+    def get_daily_basic_single(self, ts_code: str, trade_date: str = None) -> Optional[Dict[str, Any]]:
+        """Get daily basic data (PE, PB, turnover) for a single stock"""
+        if trade_date is None:
+            trade_date = datetime.now().strftime('%Y%m%d')
+        try:
+            df = self.pro.daily_basic(ts_code=ts_code, trade_date=trade_date)
+            if not df.empty:
+                return df.iloc[0].to_dict()
+        except Exception:
+            pass
+        return None
+
 
 _data_fetcher: Optional[DataFetcher] = None
 
