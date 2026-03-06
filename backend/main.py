@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import engine, Base
-from api import strategies, backtest, signals, notify
+from api import strategies, backtest, signals, notify, watchlist, stocks
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +21,8 @@ app.include_router(strategies.router, prefix="/api/strategies", tags=["strategie
 app.include_router(backtest.router, prefix="/api/backtest", tags=["backtest"])
 app.include_router(signals.router, prefix="/api/signals", tags=["signals"])
 app.include_router(notify.router, prefix="/api/notify", tags=["notify"])
+app.include_router(watchlist.router, prefix="/api/watchlist", tags=["watchlist"])
+app.include_router(stocks.router, prefix="/api/stocks", tags=["stocks"])
 
 @app.get("/")
 def root():
