@@ -30,4 +30,17 @@ export const notifyApi = {
   updateSettings: (data) => api.post('/notify/settings', data)
 }
 
+export const watchlistApi = {
+  getList: () => api.get('/watchlist'),
+  add: (data) => api.post('/watchlist', data),
+  remove: (ts_code) => api.delete(`/watchlist/${ts_code}`),
+  getQuotes: () => api.get('/watchlist/quotes')
+}
+
+export const stocksApi = {
+  search: (keyword) => api.get(`/stocks/search?keyword=${encodeURIComponent(keyword)}`),
+  list: (limit = 100) => api.get(`/stocks/list?limit=${limit}`),
+  getKline: (ts_code, freq = 'auto') => api.get(`/stocks/${ts_code}/kline?freq=${freq}`)
+}
+
 export default api
