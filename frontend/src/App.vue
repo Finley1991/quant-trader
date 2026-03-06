@@ -4,6 +4,7 @@
       <h1>Quant Trader</h1>
       <div class="nav-links">
         <router-link to="/">仪表盘</router-link>
+        <router-link to="/watchlist">自选股</router-link>
         <router-link to="/backtest">策略回测</router-link>
         <router-link to="/signals">信号历史</router-link>
         <router-link to="/settings">设置</router-link>

@@ -7,6 +7,11 @@ const routes = [
     component: () => import('@/views/Dashboard.vue')
   },
   {
+    path: '/watchlist',
+    name: 'Watchlist',
+    component: () => import('@/views/Watchlist.vue')
+  },
+  {
     path: '/backtest',
     name: 'Backtest',
     component: () => import('@/views/Backtest.vue')
